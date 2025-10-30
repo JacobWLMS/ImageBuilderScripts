@@ -1,0 +1,42 @@
+###################################
+# Update Software with Chocolately
+###################################
+
+#programs to install and update
+$programs = @(
+"powerbi",
+"adobereader",
+"sql-server-management-studio")
+
+#Check if the chcolately folder exists in program data or the chocolatey install will fail
+$chocolateyfolderPath = "C:\ProgramData\Chocolatey"
+
+if (Test-Path -Path $chocolateyfolderPath -PathType Container) {
+    Write-Host "The folder exists." -ForegroundColor Red
+    Write-Host "Deleting the folder to install chocolatey."
+    Remove-Item -Path $chocolateyfolderPath -Recurse -Force
+} else {
+    Write-Host "The folder does not exist" -ForegroundColor Green
+}
+
+# Check if the Chocolatey executable exists in the PATH environment variable
+if (Get-Command choco -ErrorAction SilentlyContinue) {
+    Write-Host "`nChocolatey is installed" -ForegroundColor Green
+} else {
+    Write-Host "`nChocolatey is not installed, installing Chocolately" -ForegroundColor Red
+    #Install chocolatey
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+}
+
+#Get a list of programs installed with chocolatey
+$chocoinstalls = choco list
+
+foreach ($program in $programs) {
+if ($chocoinstalls | Where-Object { $_ -like "*$program*" }) {
+    Write-Host "`n$program is installed with chcolately, attempting to update $program with chcolately" -ForegroundColor Green
+    choco upgrade $program -y 
+    } else {
+        Write-Host "`n$program is not installed with chocolately, forcing the install with chocolatey now" -ForegroundColor Red
+        choco install $program -force -y }
+
+        }
